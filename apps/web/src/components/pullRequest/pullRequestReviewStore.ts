@@ -24,8 +24,9 @@ interface PullRequestReviewStoreState {
   readonly drafts: Readonly<Record<string, ReadonlyArray<PendingReviewComment>>>;
   readonly summaries: Readonly<Record<string, string>>;
   readonly addComment: (key: string, comment: PendingReviewComment) => void;
+  readonly updateComment: (key: string, commentId: string, body: string) => void;
   readonly removeComment: (key: string, commentId: string) => void;
-  readonly removeComments: (key: string, commentIds: ReadonlyArray<string>) => void;
+  readonly removeComments: (key: string, submitted: ReadonlyArray<PendingReviewComment>) => void;
   readonly clear: (key: string) => void;
   readonly setSummary: (key: string, body: string) => void;
   readonly clearSummary: (key: string, submittedBody: string) => void;
@@ -40,6 +41,15 @@ export const usePullRequestReviewStore = create<PullRequestReviewStoreState>()((
     set((state) => ({
       drafts: { ...state.drafts, [key]: [...(state.drafts[key] ?? EMPTY), comment] },
     })),
+  updateComment: (key, commentId, body) =>
+    set((state) => ({
+      drafts: {
+        ...state.drafts,
+        [key]: (state.drafts[key] ?? EMPTY).map((entry) =>
+          entry.id === commentId ? { ...entry, body } : entry,
+        ),
+      },
+    })),
   removeComment: (key, commentId) =>
     set((state) => {
       const remaining = (state.drafts[key] ?? EMPTY).filter((entry) => entry.id !== commentId);
@@ -47,10 +57,11 @@ export const usePullRequestReviewStore = create<PullRequestReviewStoreState>()((
       const { [key]: _removed, ...rest } = state.drafts;
       return { drafts: rest };
     }),
-  removeComments: (key, commentIds) =>
+  removeComments: (key, submitted) =>
     set((state) => {
-      const submitted = new Set(commentIds);
-      const remaining = (state.drafts[key] ?? EMPTY).filter((entry) => !submitted.has(entry.id));
+      // Matches by identity: an edit replaces the entry, so comments revised in flight stay.
+      const sent = new Set(submitted);
+      const remaining = (state.drafts[key] ?? EMPTY).filter((entry) => !sent.has(entry));
       if (remaining.length > 0) return { drafts: { ...state.drafts, [key]: remaining } };
       const { [key]: _removed, ...rest } = state.drafts;
       return { drafts: rest };

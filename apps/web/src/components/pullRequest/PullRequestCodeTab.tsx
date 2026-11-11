@@ -509,6 +509,7 @@ function PullRequestCodeTab({
   const reviewKey = referenceKey;
   const pendingComments = usePendingReviewComments(reference);
   const addComment = usePullRequestReviewStore((store) => store.addComment);
+  const updatePendingComment = usePullRequestReviewStore((store) => store.updateComment);
   const removeComment = usePullRequestReviewStore((store) => store.removeComment);
   const replyToThread = useAtomCommand(pullRequestEnvironment.replyToThread, {
     reportFailure: false,
@@ -1070,6 +1071,10 @@ function PullRequestCodeTab({
         <PendingReviewCommentCard
           key={comment.id}
           comment={comment}
+          environmentId={environmentId}
+          projectId={reference.projectId}
+          completionScope={completionScope}
+          onEdit={(body) => updatePendingComment(reviewKey, comment.id, body)}
           onRemove={() => removeComment(reviewKey, comment.id)}
         />
       ))}
