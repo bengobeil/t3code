@@ -110,25 +110,24 @@ export function PendingReviewCommentCard({
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <MessageSquareIcon className="size-3.5" />
         <span>Pending. Sent when you submit the review</span>
-        <span className="ml-auto flex items-center gap-1">
-          {editText === null ? (
-            <PullRequestEditButton
-              aria-label="Edit this comment"
-              onClick={() => setEditText(comment.body)}
-            />
-          ) : null}
-          <Button
-            size="icon-xs"
-            variant="ghost-muted"
-            aria-label="Discard this comment"
-            onClick={onRemove}
-          >
-            <Trash2Icon className="size-3" />
-          </Button>
-        </span>
+        <Button
+          size="icon-xs"
+          variant="ghost"
+          className="ml-auto"
+          aria-label="Discard this comment"
+          onClick={onRemove}
+        >
+          <Trash2Icon className="size-3.5" />
+        </Button>
       </div>
       {editText === null ? (
-        <p className="mt-2 whitespace-pre-wrap leading-relaxed">{comment.body}</p>
+        <div className="mt-2 flex items-start gap-1">
+          <p className="min-w-0 flex-1 whitespace-pre-wrap leading-relaxed">{comment.body}</p>
+          <PullRequestEditButton
+            aria-label="Edit this comment"
+            onClick={() => setEditText(comment.body)}
+          />
+        </div>
       ) : (
         <div className="-mx-3 -mb-2">
           <DiffCommentAnnotation
