@@ -119,11 +119,11 @@ export function PendingReviewCommentCard({
           ) : null}
           <Button
             size="icon-xs"
-            variant="ghost"
+            variant="ghost-muted"
             aria-label="Discard this comment"
             onClick={onRemove}
           >
-            <Trash2Icon className="size-3.5" />
+            <Trash2Icon className="size-3" />
           </Button>
         </span>
       </div>
