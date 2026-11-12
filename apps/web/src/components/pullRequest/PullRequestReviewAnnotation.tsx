@@ -1,5 +1,6 @@
 import type {
   EnvironmentId,
+  ProjectId,
   PullRequestDiffSide,
   PullRequestRef,
   PullRequestReviewPosition,
@@ -22,6 +23,7 @@ import { RelativeTime } from "~/components/RelativeTime";
 import { cn } from "~/lib/utils";
 import { SpeechTextField, TextFieldSpeechControls } from "~/speech/useTextFieldSpeech";
 
+import { DiffCommentAnnotation } from "../diffs/DiffCommentAnnotation";
 import { Button } from "../ui/button";
 import { PullRequestEditButton } from "./PullRequestEditButton";
 import { isCommentSubmitShortcut } from "../diffs/commentSubmitShortcut";
@@ -85,14 +87,23 @@ export function getReviewPositionAnchor(position: PullRequestReviewPosition): {
 
 export function PendingReviewCommentCard({
   comment,
+  environmentId,
+  projectId,
+  completionScope,
+  onEdit,
   onRemove,
 }: {
   comment: PendingReviewComment;
+  environmentId?: EnvironmentId | undefined;
+  projectId?: ProjectId | undefined;
+  completionScope: PullRequestCompletionScope | null;
+  onEdit: (body: string) => void;
   onRemove: () => void;
 }) {
+  const [editText, setEditText] = useState<string | null>(null);
   return (
     <div
-      className={cn(CARD_CLASS, "border-dashed")}
+      className={cn(CARD_CLASS, "group border-dashed")}
       contentEditable={false}
       onPointerDown={(event) => event.stopPropagation()}
     >
@@ -109,7 +120,34 @@ export function PendingReviewCommentCard({
           <Trash2Icon className="size-3.5" />
         </Button>
       </div>
-      <p className="mt-2 whitespace-pre-wrap leading-relaxed">{comment.body}</p>
+      {editText === null ? (
+        <div className="mt-2 flex items-start gap-1">
+          <p className="min-w-0 flex-1 whitespace-pre-wrap leading-relaxed">{comment.body}</p>
+          <PullRequestEditButton
+            aria-label="Edit this comment"
+            onClick={() => setEditText(comment.body)}
+          />
+        </div>
+      ) : (
+        <div className="-mx-3 -mb-2">
+          <DiffCommentAnnotation
+            environmentId={environmentId}
+            projectId={projectId}
+            ownerKey={JSON.stringify(["pending-review-comment-edit", environmentId, comment.id])}
+            kind="draft"
+            rangeLabel={`${comment.path}:${getReviewPositionAnchor(comment.position).line}`}
+            text={editText}
+            onTextChange={setEditText}
+            completionScope={completionScope}
+            submitLabel="Save"
+            onCancel={() => setEditText(null)}
+            onComment={(body) => {
+              onEdit(body);
+              setEditText(null);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

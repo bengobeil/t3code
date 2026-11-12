@@ -58,6 +58,7 @@ export function PullRequestGuideTab({
   const reviewKey = pullRequestReviewKey(reference);
   const pending = usePendingReviewComments(reference);
   const addComment = usePullRequestReviewStore((store) => store.addComment);
+  const updateComment = usePullRequestReviewStore((store) => store.updateComment);
   const removeComment = usePullRequestReviewStore((store) => store.removeComment);
   const commenting: ExcerptCommenting | null =
     !canComment && onAskAboutLines === null
@@ -76,6 +77,7 @@ export function PullRequestGuideTab({
               position,
               body,
             }),
+          onEdit: (commentId, body) => updateComment(reviewKey, commentId, body),
           onRemove: (commentId) => removeComment(reviewKey, commentId),
           onAskAgent: onAskAboutLines,
         };
